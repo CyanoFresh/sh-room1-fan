@@ -23,7 +23,6 @@ void connectToMqtt() {
 
 void onWifiConnect(const WiFiEventStationModeGotIP &event) {
     Serial.println("Connected to Wi-Fi.");
-    digitalWrite(LED_BUILTIN, LOW);
 
     connectToMqtt();
 }
@@ -90,6 +89,8 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties,
 }
 
 void setup() {
+    digitalWrite(LED_BUILTIN, HIGH);
+
     Serial.begin(115200);
     Serial.println();
     Serial.println();
@@ -133,6 +134,8 @@ void loop() {
                 digitalWrite(config::RELAY_PIN, newState);
 
                 mqttClient.publish("switch/room1-fan", 0, false, newState == HIGH ? "false" : "true");
+
+                Serial.println("Button pressed");
 
                 // Save last state to the memory
                 EEPROM.put(0, newState);

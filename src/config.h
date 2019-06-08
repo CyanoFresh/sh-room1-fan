@@ -16,7 +16,7 @@ namespace config {
     const uint8_t RELAY_PIN = D1;
     const uint8_t BTN_PIN = D2;
 
-    const uint8_t BTN_DEBOUNCE_PERIOD = 50;
+    const uint8_t BTN_DEBOUNCE_PERIOD = 70;
 }
 
 #endif
