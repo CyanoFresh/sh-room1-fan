@@ -13,7 +13,7 @@ Ticker wifiReconnectTimer;
 
 void connectToWifi() {
     Serial.println("Connecting to Wi-Fi...");
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.begin(config::WIFI_SSID, config::WIFI_PASSWORD);
 }
 
 void connectToMqtt() {
@@ -47,7 +47,7 @@ void onMqttConnect(bool) {
     mqttClient.subscribe("device/room1-fan", 0);
 
     // Send current state
-    mqttClient.publish("switch/room1-fan", 0, false, digitalRead(RELAY_PIN) == HIGH ? "false" : "true");
+    mqttClient.publish("switch/room1-fan", 0, false, digitalRead(config::RELAY_PIN) == HIGH ? "false" : "true");
 }
 
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
@@ -66,7 +66,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties,
     uint8_t newState = HIGH;
 
     if (strcmp(topic, "switch/room1-fan/toggle") == 0) {
-        if (digitalRead(RELAY_PIN) == HIGH) {
+        if (digitalRead(config::RELAY_PIN) == HIGH) {
             newState = LOW;
         }
 
@@ -82,7 +82,7 @@ void onMqttMessage(char *topic, char *payload, AsyncMqttClientMessageProperties,
         mqttClient.publish("switch/room1-fan", 0, false, payloadBuffer);
     }
 
-    digitalWrite(RELAY_PIN, newState);
+    digitalWrite(config::RELAY_PIN, newState);
 
     // Save last state to the memory
     EEPROM.put(0, newState);
@@ -94,15 +94,15 @@ void setup() {
     Serial.println();
     Serial.println();
 
-    pinMode(RELAY_PIN, OUTPUT);
-    pinMode(BTN_PIN, INPUT_PULLUP);
+    pinMode(config::RELAY_PIN, OUTPUT);
+    pinMode(config::BTN_PIN, INPUT_PULLUP);
 
     bool lastState = HIGH;  // off by default
 
     EEPROM.begin(sizeof(bool));    // 1 byte is enough for boolean
     EEPROM.get(0, lastState);
 
-    digitalWrite(RELAY_PIN, lastState);
+    digitalWrite(config::RELAY_PIN, lastState);
 
     wifiConnectHandler = WiFi.onStationModeGotIP(onWifiConnect);
     wifiDisconnectHandler = WiFi.onStationModeDisconnected(onWifiDisconnect);
@@ -110,9 +110,9 @@ void setup() {
     mqttClient.onConnect(onMqttConnect);
     mqttClient.onDisconnect(onMqttDisconnect);
     mqttClient.onMessage(onMqttMessage);
-    mqttClient.setServer(MQTT_HOST, MQTT_PORT);
-    mqttClient.setClientId(MQTT_ID);
-    mqttClient.setCredentials("device", MQTT_PASSWORD);
+    mqttClient.setServer(config::MQTT_HOST, config::MQTT_PORT);
+    mqttClient.setClientId(config::MQTT_ID);
+    mqttClient.setCredentials("device", config::MQTT_PASSWORD);
 
     connectToWifi();
 }
@@ -123,14 +123,14 @@ bool lastBtnState = HIGH;
 void loop() {
     unsigned long time = millis();
 
-    if (time - lastBtnTime >= BTN_DEBOUNCE_PERIOD) {
-        bool btnState = digitalRead(BTN_PIN);
+    if (time - lastBtnTime >= config::BTN_DEBOUNCE_PERIOD) {
+        bool btnState = digitalRead(config::BTN_PIN);
 
         if (btnState != lastBtnState) {
             if (btnState == LOW) {   // button pressed
-                const bool newState = !digitalRead(RELAY_PIN);
+                const bool newState = !digitalRead(config::RELAY_PIN);
 
-                digitalWrite(RELAY_PIN, newState);
+                digitalWrite(config::RELAY_PIN, newState);
 
                 mqttClient.publish("switch/room1-fan", 0, false, newState == HIGH ? "false" : "true");
 
